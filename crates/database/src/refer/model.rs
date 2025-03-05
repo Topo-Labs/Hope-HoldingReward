@@ -8,8 +8,3 @@ pub struct Refer {
     pub upper: String,            // Address
     pub timestamp: DateTime<Utc>, // 2024-10-01T04:50:42.849324741Z
 }
-
-pub struct ReferItem {
-    pub lower: String,
-    pub upper: String,
-}
