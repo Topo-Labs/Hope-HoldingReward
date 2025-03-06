@@ -10,6 +10,7 @@ pub type DynUserRepository = Arc<dyn UserRepositoryTrait + Send + Sync>;
 // 主要用于Service中，表示提供了该Trait功能
 #[async_trait]
 pub trait UserRepositoryTrait {
+    // 创建用户(不会由前端调用，仅仅来自链上监听事件)
     async fn create_user(
         &self,
         address: &str,
@@ -17,6 +18,7 @@ pub trait UserRepositoryTrait {
         price: f64,
     ) -> AppResult<InsertOneResult>;
 
+    // 获取活动开始后的新用户
     async fn get_user(&self, address: &str) -> AppResult<Option<User>>;
 }
 
