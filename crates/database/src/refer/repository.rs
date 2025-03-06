@@ -13,17 +13,18 @@ pub type DynReferRepository = Arc<dyn ReferRepositoryTrait + Send + Sync>;
 // 主要用于Service中，表示提供了该Trait功能
 #[async_trait]
 pub trait ReferRepositoryTrait {
-    // 插入某个上下级关系
+    // 插入某个上下级关系(监听链上)
     async fn create_refer(&self, lower: &str, upper: &str) -> AppResult<InsertOneResult>;
 
-    // 批量插入上下级关系
+    // 批量插入上下级关系(api调用)
+    // TODO: 权限控制
     async fn create_refers(&self, refers: Vec<Refer>) -> AppResult<InsertManyResult>;
 
-    // 获取某个地址的上级
-    async fn get_upper(&self, id: &str) -> AppResult<Option<String>>;
+    // 获取某个地址的上级()
+    async fn get_upper(&self, address: &str) -> AppResult<Option<String>>;
 
     // 获取某个地址的上级&上上级
-    async fn get_upper_chain(&self, email: &str) -> AppResult<Vec<String>>;
+    async fn get_uppers(&self, address: &str) -> AppResult<Vec<String>>;
 
     // // 获取某个地址的所有下级
     // async fn get_lowers(&self, id: &str) -> AppResult<Option<User>>;
@@ -59,7 +60,7 @@ impl ReferRepositoryTrait for Database {
         Ok(refer.map(|r| r.upper))
     }
 
-    async fn get_upper_chain(&self, lower: &str) -> AppResult<Vec<String>> {
+    async fn get_uppers(&self, lower: &str) -> AppResult<Vec<String>> {
         let mut result = Vec::new();
         let mut current_lower = lower.to_string();
 
