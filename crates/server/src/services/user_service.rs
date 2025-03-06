@@ -1,18 +1,16 @@
-use crate::dtos::user_dto::SignUpUserDto;
+// use crate::dtos::user_dto::GetUserDto;
 use async_trait::async_trait;
 use database::user::{model::User, repository::DynUserRepository};
-use mongodb::results::InsertOneResult;
+// use mongodb::results::InsertOneResult;
 use std::sync::Arc;
-use tracing::{error, info};
-use utils::{AppError, AppResult};
+// use tracing::{error, info};
+use utils::AppResult;
 
 pub type DynUserService = Arc<dyn UserServiceTrait + Send + Sync>;
 
 #[async_trait]
 pub trait UserServiceTrait {
-    async fn signup_user(&self, request: SignUpUserDto) -> AppResult<InsertOneResult>;
-    async fn get_current_user(&self, user_id: &str) -> AppResult<Option<User>>;
-    async fn get_all_users(&self) -> AppResult<Vec<User>>;
+    async fn get_user(&self, address: String) -> AppResult<Option<User>>;
 }
 
 #[derive(Clone)]
@@ -28,37 +26,11 @@ impl UserService {
 
 #[async_trait]
 impl UserServiceTrait for UserService {
-    async fn signup_user(&self, request: SignUpUserDto) -> AppResult<InsertOneResult> {
-        let email = request.email.unwrap();
-        let name = request.name.unwrap();
-        let password = request.password.unwrap();
+    async fn get_user(&self, address: String) -> AppResult<Option<User>> {
+        // let address = request.address.unwrap();
 
-        let existing_user = self.repository.get_user_by_email(&email).await?;
-
-        if existing_user.is_some() {
-            error!("user {:?} already exists", email);
-            return Err(AppError::Conflict(format!("email {} is taken", email)));
-        }
-
-        let new_user = self
-            .repository
-            .create_user(&name, &email, &password)
-            .await?;
-
-        info!("created user {:?}", new_user);
-
-        Ok(new_user)
-    }
-
-    async fn get_current_user(&self, user_id: &str) -> AppResult<Option<User>> {
-        let user = self.repository.get_user_by_id(user_id).await?;
+        let user = self.repository.get_user(&address).await?;
 
         Ok(user)
-    }
-
-    async fn get_all_users(&self) -> AppResult<Vec<User>> {
-        let users = self.repository.get_all_users().await?;
-
-        Ok(users)
     }
 }
