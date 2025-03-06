@@ -14,19 +14,25 @@ use tracing::info;
 use mongodb::{Client, Collection}; // 源码中集成了mongodb，因此数据是直接存储在这个程序中的(此处的是driver还是mongodb本身?)
 use utils::{AppConfig, AppResult, CargoEnv};
 
-pub mod user;          //TODO: 数据库操作层中定义了user这个Domain(Entity)
-use user::model::User; // TODO: 
+pub mod refer;
+use refer::model::Refer;
+
+pub mod user;
+use user::model::User;
+
+pub mod reward;
+use reward::model::Reward;
 
 #[derive(Clone, Debug)]
 pub struct Database {
-    pub users: Collection<User>, // TODO: 构建一个内置多个"集合"的Database
+    pub refers: Collection<Refer>,
+    pub users: Collection<User>, 
+    pub rewards: Collection<Reward>, 
 }
 
 impl Database {
     pub async fn new(config: Arc<AppConfig>) -> AppResult<Self> {
         let client = Client::with_uri_str(&config.mongo_uri).await?;
-
-        // let db = client.database(&config.mongo_db);
 
         let db = match &config.cargo_env {
             CargoEnv::Development => {
@@ -36,11 +42,9 @@ impl Database {
                 client.database(&config.mongo_db)
             }
         };
-        let users = db.collection("User"); // TODO: 创建一个User集合
-
-
-        // info!("🧱 database connected.");
-
+        let refers = db.collection("Refer");  
+        let users = db.collection("User");    
+        let rewards = db.collection("Reward");
 
         info!("🧱 database({:#}) connected.", match &config.cargo_env {
             CargoEnv::Development => {
@@ -52,26 +56,6 @@ impl Database {
         });
 
 
-        Ok(Database { users }) // TODO: 构建一个内置多个"集合"的Database.
+        Ok(Database { refers, users, rewards })
     }
 }
-
-// impl Database {
-//     pub async fn new(config: Arc<AppConfig>) -> AppResult<Self> {
-//         match Database::connect(&config.mongo_uri).await {
-//             Ok(client) => {
-//                 let db = client.database(&config.mongo_db);
-//                 let users = db.collection("User");
-
-//                 info!("🧱 database conne123cted.");
-//                 Ok(Database { users })
-//             },
-//             Err(err) => Err(err.into()), // 将 MongoError 转换成 AppError
-//         }
-//     }
-
-//     async fn connect(uri: &str) -> Result<Client, MongoError> {
-//         // 这里使用 `await` 异步等待连接结果
-//         Client::with_uri_str(uri).await // TODO: 为什么mongodb中Client::with_uri_str连接失败与成功，没有区别
-//     }
-// }
