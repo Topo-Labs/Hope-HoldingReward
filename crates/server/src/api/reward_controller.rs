@@ -1,10 +1,14 @@
-use crate::services::Services;
+use crate::{
+    dtos::reward_dto::{SetRewardDto, SetRewardsDto},
+    extractors::validation_extractor::ValidationExtractor,
+    services::Services,
+};
 use axum::{
     extract::Path,
     routing::{get, post},
     Extension, Json, Router,
 };
-use database::reward::{self, model::Reward};
+use database::reward::model::Reward;
 use mongodb::results::UpdateResult;
 use utils::{AppError, AppResult};
 
@@ -20,18 +24,18 @@ impl RewardController {
 
     pub async fn set_reward(
         Extension(services): Extension<Services>,
-        Json(address): Json<String>,
+        ValidationExtractor(req): ValidationExtractor<SetRewardDto>,
     ) -> AppResult<Json<UpdateResult>> {
-        let reward = services.reward.set_reward(address).await?;
+        let reward = services.reward.set_reward(req.address).await?;
 
         Ok(Json(reward))
     }
 
     pub async fn set_rewards(
         Extension(services): Extension<Services>,
-        Json(addresses): Json<Vec<String>>,
+        ValidationExtractor(req): ValidationExtractor<SetRewardsDto>,
     ) -> AppResult<Json<UpdateResult>> {
-        let rewards = services.reward.set_rewards(addresses).await?;
+        let rewards = services.reward.set_rewards(req.addresses).await?;
 
         Ok(Json(rewards))
     }

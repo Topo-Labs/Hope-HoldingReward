@@ -16,7 +16,7 @@ impl UserController {
         match services.user.get_user(address.to_string()).await? {
             Some(user) => Ok(Json(user)),
             None => Err(AppError::NotFound(format!(
-                "User with address {} not found.",
+                "New User with address {} not found.",
                 address
             ))),
         }
