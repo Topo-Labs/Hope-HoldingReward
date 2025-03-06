@@ -7,17 +7,24 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-pub(crate) mod user_service; // TODO
+pub(crate) mod refer_service;
+pub(crate) mod reward_service;
+pub(crate) mod user_service;
 
+use crate::services::{
+    refer_service::{DynReferService, ReferService},
+    reward_service::{DynRewardService, RewardService},
+    user_service::{DynUserService, UserService},
+};
+use database::Database;
 use std::sync::Arc;
 use tracing::info;
-
-use crate::services::user_service::{DynUserService, UserService};
-use database::Database; // TODO
 
 #[derive(Clone)]
 pub struct Services {
     pub user: DynUserService,
+    pub refer: DynReferService,
+    pub reward: DynRewardService,
 }
 
 impl Services {
@@ -25,9 +32,15 @@ impl Services {
         let repository = Arc::new(db);
 
         let user = Arc::new(UserService::new(repository.clone())) as DynUserService;
+        let refer = Arc::new(ReferService::new(repository.clone())) as DynReferService;
+        let reward = Arc::new(RewardService::new(repository.clone())) as DynRewardService;
 
         info!("🧠 initializing services...");
 
-        Self { user }
+        Self {
+            user,
+            refer,
+            reward,
+        }
     }
 }
